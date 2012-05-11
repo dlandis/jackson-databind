@@ -175,16 +175,23 @@ public class BeanSerializerFactory
         if (ser == null) {
             ser = findSerializerByPrimaryType(prov, type, beanDesc, staticTyping);
             if (ser == null) {
+                /* Give precendence to Iterable/Iterator Serializer over BeanSerializer.
+                 */
+                ser = findSerializerByTraversableType(config, type, beanDesc, staticTyping);
+                
                 /* And this is where this class comes in: if type is not a
                  * known "primary JDK type", perhaps it's a bean? We can still
                  * get a null, if we can't find a single suitable bean property.
                  */
-                ser = findBeanSerializer(prov, type, beanDesc, property);
-                /* Finally: maybe we can still deal with it as an
-                 * implementation of some basic JDK interface?
-                 */
-                if (ser == null) {
-                    ser = findSerializerByAddonType(config, type, beanDesc, staticTyping);
+                if(ser == null){
+                  ser = findBeanSerializer(prov, type, beanDesc, property);
+                  
+                  /* Finally: maybe we can still deal with it as an
+                   * implementation of some basic JDK interface?
+                   */
+                  if (ser == null) {
+                      ser = findSerializerByAddonType(config, type, beanDesc, staticTyping);
+                  }
                 }
             }
         }

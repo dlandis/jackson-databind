@@ -375,12 +375,28 @@ public abstract class BasicSerializerFactory
     /**
      * Reflection-based serialized find method, which checks if
      * given class implements one of recognized "add-on" interfaces.
-     * Add-on here means a role that is usually or can be a secondary
-     * trait: for example,
-     * bean classes may implement {@link Iterable}, but their main
-     * function is usually something else. The reason for
+     * Add-on here means a role that is usually or can be a secondary.
      */
     protected final JsonSerializer<?> findSerializerByAddonType(SerializationConfig config,
+            JavaType javaType, BeanDescription beanDesc,
+            boolean staticTyping)
+        throws JsonMappingException
+    {
+        Class<?> type = javaType.getRawClass();
+
+        // These (if more are added) need to be in decreasing order of specificity...
+        if (CharSequence.class.isAssignableFrom(type)) {
+            return ToStringSerializer.instance;
+        }
+        return null;
+    }
+    
+    /**
+     * Reflection-based serialized find method, which checks if
+     * given class implements one of recognized "traversable" interfaces.
+     * Traversable here means either an Iterable or Iterator. 
+     */
+    protected final JsonSerializer<?> findSerializerByTraversableType(SerializationConfig config,
             JavaType javaType, BeanDescription beanDesc,
             boolean staticTyping)
         throws JsonMappingException
@@ -394,11 +410,8 @@ public abstract class BasicSerializerFactory
         if (Iterable.class.isAssignableFrom(type)) {
             return buildIterableSerializer(config, javaType, beanDesc,  staticTyping);
         }
-        if (CharSequence.class.isAssignableFrom(type)) {
-            return ToStringSerializer.instance;
-        }
         return null;
-    }
+    }    
     
     /**
      * Helper method called to check if a class or method
